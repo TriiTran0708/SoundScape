@@ -1666,31 +1666,26 @@
       load();
     </script>
     <script>
-      (function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="B5CIHzTD5KIdeJO3zmFCF";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();
-    </script>
+(function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="B5CIHzTD5KIdeJO3zmFCF";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();
+</script>
     <script>
-      // --- SERVER CODE ---
-const jwt = require('jsonwebtoken');
-
-const secret = w0oz3xee3jurzbxsqm2o73cxtra4l8xy; // Your chatbase secret key (should be stored as a secret not in the code)
-
-const user = await getSignedInUser(); // Get the current user signed in to your site
-
-const token = jwt.sign(
-    {
-        user_id: user.id, // Your user's id
-        email: user.email, // User's email
-        stripe_accounts: user.stripe_accounts, // User's stripe accounts for stripe integration
-        // ... other custom attributes
-    },
-    secret,
-    { expiresIn: '1h' }
-);
-
-// --- CLIENT CODE ---
-const token = await getUserToken(); // Get the token from your server
-window.chatbase('identify', { token }); // identify the user with Chatbase
-
+      // Chatbase identification (client-side)
+      // NOTE: Do NOT place secrets or server-side code in client HTML.
+      // Create a signed token on your server and expose it via an endpoint
+      // (for example: GET /chatbase-token -> { token: "..." }).
+      (async () => {
+        try {
+          const res = await fetch('/chatbase-token');
+          if (!res.ok) return;
+          const data = await res.json();
+          const token = data?.token;
+          if (token && window.chatbase) {
+            window.chatbase('identify', { token });
+          }
+        } catch (e) {
+          console.warn('Chatbase token fetch failed', e);
+        }
+      })();
     </script>
   </body>
 </html>
