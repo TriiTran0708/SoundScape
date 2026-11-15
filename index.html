@@ -1098,7 +1098,8 @@
       .overlay .player-action { color: #fff; background: rgba(15, 20, 16, .55); backdrop-filter: blur(8px); }
       .google-button { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px; margin: 0 0 12px; border: 1px solid var(--border-strong); border-radius: 12px; color: var(--fg); background: var(--surface); font: inherit; font-size: 14px; cursor: pointer; transition: background .18s ease; }
       .google-button:hover { background: var(--surface-2); }
-      .google-mark { width: 20px; height: 20px; display: grid; place-items: center; border-radius: 50%; color: #4285f4; background: #fff; font: 700 13px Arial, sans-serif; }
+      .google-button:disabled { cursor: wait; opacity: .65; }
+      .google-mark { width: 20px; height: 20px; flex: none; }
       html[data-mood="chill"] { --primary: #b6d0a6; --accent: #d3c7a2; --gradient-mood: linear-gradient(135deg, #c0d8ad, #a9c5b2); }
       html[data-mood="focus"] { --primary: #a9c9d0; --accent: #b7cfb2; --gradient-mood: linear-gradient(135deg, #a9c9d0, #b7cfb2); }
       html[data-mood="hype"] { --primary: #e6b29a; --accent: #e3c587; --gradient-mood: linear-gradient(135deg, #e6b29a, #e3c587); }
@@ -1529,7 +1530,7 @@
           />
         </div>
         <p class="modal-error" id="modalError"></p>
-        <button class="google-button" id="googleButton" type="button"><span class="google-mark">G</span>Continue with Google</button>
+        <button class="google-button" id="googleButton" type="button"><img class="google-mark" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="" aria-hidden="true" />Continue with Google</button>
         <button class="btn-primary" id="modalSubmit">Sign in</button>
         <p class="auth-modal-footer" id="modalFooter">
           Don't have an account?
@@ -1538,11 +1539,14 @@
       </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
       // Keep this page working in a normal browser without Vite-only module syntax.
       // Supabase stays optional; if values are not provided, the app still works for the UI.
-      const SUPA_URL = (window.__SUPABASE_URL__ || window.SUPABASE_URL || "").toString();
-      const SUPA_KEY = (window.__SUPABASE_ANON_KEY__ || window.SUPABASE_ANON_KEY || "").toString();
+      const VITE_SUPA_URL = "%VITE_SUPABASE_URL%";
+      const VITE_SUPA_KEY = "%VITE_SUPABASE_ANON_KEY%";
+      const SUPA_URL = (window.__SUPABASE_URL__ || window.SUPABASE_URL || (VITE_SUPA_URL.startsWith("%VITE_") ? "" : VITE_SUPA_URL)).toString();
+      const SUPA_KEY = (window.__SUPABASE_ANON_KEY__ || window.SUPABASE_ANON_KEY || (VITE_SUPA_KEY.startsWith("%VITE_") ? "" : VITE_SUPA_KEY)).toString();
       const sb = SUPA_URL && SUPA_KEY && window.supabase && typeof window.supabase.createClient === "function"
         ? window.supabase.createClient(SUPA_URL, SUPA_KEY)
         : null;
@@ -2454,6 +2458,26 @@ function playTrack(t) {
       });
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") closeModal();
+      });
+
+      $("#googleButton").addEventListener("click", async () => {
+        const button = $("#googleButton");
+        const errEl = $("#modalError");
+        if (!sb) {
+          errEl.textContent = "Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to enable Google sign-in.";
+          return;
+        }
+
+        button.disabled = true;
+        errEl.textContent = "";
+        try {
+          const { error } = await sb.auth.signInWithOAuth({ provider: "google" });
+          if (error) errEl.textContent = error.message;
+        } catch (error) {
+          errEl.textContent = error instanceof Error ? error.message : "Google sign-in failed.";
+        } finally {
+          button.disabled = false;
+        }
       });
 
       $("#modalSubmit").addEventListener("click", async () => {
