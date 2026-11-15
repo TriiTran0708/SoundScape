@@ -36,6 +36,10 @@ const state = {
 
 /* ---------------- Auth ---------------- */
 async function initAuth() {
+  if (!isSupabaseConfigured || !supabase) {
+    updateUserUI(null);
+    return;
+  }
   // Initialize auth listener even if VITE env vars are not set — the client may be using
   // the fallback project/key provided in src/supabase.js.
   const { data: { session } } = await supabase.auth.getSession();
@@ -176,6 +180,10 @@ function showModal(mode) {
 $('#closeModal').onclick = () => $('#authModal').classList.add('hidden');
 $('#authForm').onsubmit = async (e) => {
   e.preventDefault();
+  if (!isSupabaseConfigured || !supabase) {
+    $('#authError').textContent = 'Configure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to use account sign-in.';
+    return;
+  }
   const email = $('#authEmail').value;
   const password = $('#authPassword').value;
   const { error } = state.authMode === 'signin' 

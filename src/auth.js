@@ -18,6 +18,10 @@ function setMode(mode) {
 
 $('#authForm').onsubmit = async (e) => {
   e.preventDefault();
+  if (!isSupabaseConfigured || !supabase) {
+    $('#error').textContent = 'Configure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to use account sign-in.';
+    return;
+  }
   const email = $('#email').value.trim();
   const password = $('#password').value;
   $('#submitBtn').disabled = true;
